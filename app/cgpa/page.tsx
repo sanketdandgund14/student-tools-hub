@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
+import confetti from "canvas-confetti";
 
 export default function CGPA() {
   const [mode, setMode] = useState<"cgpa" | "percentage">("cgpa");
@@ -14,7 +15,52 @@ export default function CGPA() {
 
   const [error, setError] = useState("");
 
-  // CGPA → Percentage (instant)
+  const [band, setBand] = useState<string | null>(null);
+  const lastBandRef = useRef<string | null>(null);
+
+  // 🎯 Band Logic
+  const getBand = (p: number) => {
+    if (p >= 90) return "elite";
+    if (p >= 80) return "excellent";
+    if (p >= 70) return "good";
+    if (p >= 60) return "average";
+    return "low";
+  };
+
+  const bandData: any = {
+    elite: {
+      label: "Elite",
+      msg: "Outstanding performance 🚀",
+      color: "from-green-500 to-emerald-600",
+      emoji: "🎉🔥",
+    },
+    excellent: {
+      label: "Excellent",
+      msg: "Strong academic performance 💪",
+      color: "from-blue-500 to-indigo-600",
+      emoji: "🚀📈",
+    },
+    good: {
+      label: "Good",
+      msg: "Nice progress 👍 Keep pushing",
+      color: "from-yellow-500 to-orange-500",
+      emoji: "👍",
+    },
+    average: {
+      label: "Average",
+      msg: "Can improve with consistency 📚",
+      color: "from-orange-500 to-red-500",
+      emoji: "⚠️",
+    },
+    low: {
+      label: "Low",
+      msg: "Focus on basics and rebuild 📉",
+      color: "from-red-600 to-red-800",
+      emoji: "🛠",
+    },
+  };
+
+  // CGPA → %
   useEffect(() => {
     if (mode !== "cgpa") return;
 
@@ -22,27 +68,42 @@ export default function CGPA() {
 
     if (cgpa === "") {
       setPercentageResult(null);
+      setBand(null);
       setError("");
       return;
     }
 
     if (Number.isNaN(value)) {
-      setError("Enter a valid CGPA");
-      setPercentageResult(null);
+      setError("Enter valid CGPA");
       return;
     }
 
     if (value < 0 || value > 10) {
-      setError("CGPA must be between 0 and 10");
-      setPercentageResult(null);
+      setError("CGPA must be 0–10");
       return;
     }
 
     setError("");
-    setPercentageResult(value * 9.5);
+
+    const percent = value * 9.5;
+    setPercentageResult(percent);
+
+    const b = getBand(percent);
+    setBand(b);
+
+    // 🎉 Confetti trigger only once
+    if (b === "elite" && lastBandRef.current !== "elite") {
+      confetti({
+        particleCount: 120,
+        spread: 70,
+        origin: { y: 0.6 },
+      });
+    }
+
+    lastBandRef.current = b;
   }, [cgpa, mode]);
 
-  // Percentage → CGPA (instant)
+  // % → CGPA
   useEffect(() => {
     if (mode !== "percentage") return;
 
@@ -55,14 +116,12 @@ export default function CGPA() {
     }
 
     if (Number.isNaN(value)) {
-      setError("Enter a valid percentage");
-      setCgpaResult(null);
+      setError("Enter valid percentage");
       return;
     }
 
     if (value < 0 || value > 100) {
-      setError("Percentage must be between 0 and 100");
-      setCgpaResult(null);
+      setError("Percentage must be 0–100");
       return;
     }
 
@@ -75,24 +134,24 @@ export default function CGPA() {
 
       <section className="mx-auto max-w-6xl grid gap-8 lg:grid-cols-[1fr_1.2fr]">
 
-        {/* LEFT SIDE (SEO + INFO) */}
+        {/* LEFT */}
         <div>
-          <p className="mb-4 inline-flex rounded-full border border-blue-200 bg-white/80 px-4 py-2 text-sm font-semibold text-blue-800 shadow-sm">
+          <p className="mb-4 inline-flex rounded-full border bg-white px-4 py-2 text-sm font-semibold text-blue-800 shadow">
             CGPA Conversion Tool
           </p>
 
-          <h1 className="text-4xl font-black text-slate-950 sm:text-5xl">
-            CGPA ↔ Percentage Calculator
+          <h1 className="text-4xl font-black text-slate-900 sm:text-5xl">
+            CGPA ↔ Percentage
           </h1>
 
-          <p className="mt-4 text-lg text-slate-600 leading-8">
-            Convert CGPA to percentage or percentage to CGPA instantly using standard Indian formulas.
+          <p className="mt-4 text-lg text-slate-600">
+            Instant conversion using standard formula.
           </p>
 
           <div className="mt-6 grid grid-cols-2 gap-3">
             <div className="bg-white p-4 rounded-xl shadow">
               <p className="text-sm text-gray-500">Formula</p>
-              <p className="font-bold text-xl">CGPA × 9.5</p>
+              <p className="font-bold text-xl">× 9.5</p>
             </div>
             <div className="bg-white p-4 rounded-xl shadow">
               <p className="text-sm text-gray-500">Reverse</p>
@@ -101,7 +160,7 @@ export default function CGPA() {
           </div>
         </div>
 
-        {/* RIGHT SIDE (TOOL) */}
+        {/* RIGHT TOOL */}
         <div className="bg-white/80 backdrop-blur-xl p-6 rounded-2xl shadow-xl">
 
           {/* TOGGLE */}
@@ -109,9 +168,7 @@ export default function CGPA() {
             <button
               onClick={() => setMode("cgpa")}
               className={`flex-1 p-3 rounded-lg font-bold transition ${
-                mode === "cgpa"
-                  ? "bg-blue-600 text-white"
-                  : "bg-slate-100"
+                mode === "cgpa" ? "bg-blue-600 text-white" : "bg-slate-100"
               }`}
             >
               CGPA → %
@@ -130,33 +187,30 @@ export default function CGPA() {
           </div>
 
           {/* INPUT */}
-          <div>
-            {mode === "cgpa" ? (
-              <input
-                type="number"
-                value={cgpa}
-                placeholder="Enter CGPA (0–10)"
-                onChange={(e) => setCgpa(e.target.value)}
-                className="w-full p-4 border rounded-xl text-lg focus:ring-4 focus:ring-blue-200"
-              />
-            ) : (
-              <input
-                type="number"
-                value={percentage}
-                placeholder="Enter Percentage (0–100)"
-                onChange={(e) => setPercentage(e.target.value)}
-                className="w-full p-4 border rounded-xl text-lg focus:ring-4 focus:ring-purple-200"
-              />
-            )}
-          </div>
+          {mode === "cgpa" ? (
+            <input
+              type="number"
+              value={cgpa}
+              placeholder="Enter CGPA"
+              onChange={(e) => setCgpa(e.target.value)}
+              className="w-full p-4 border rounded-xl text-lg focus:ring-4 focus:ring-blue-200"
+            />
+          ) : (
+            <input
+              type="number"
+              value={percentage}
+              placeholder="Enter Percentage"
+              onChange={(e) => setPercentage(e.target.value)}
+              className="w-full p-4 border rounded-xl text-lg focus:ring-4 focus:ring-purple-200"
+            />
+          )}
 
-          {/* ERROR */}
           {error && (
             <p className="mt-3 text-red-600 font-semibold">{error}</p>
           )}
 
           {/* RESULT */}
-          <div className="mt-6 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 text-white p-6 text-center shadow-lg">
+          <div className="mt-6 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 text-white p-6 text-center shadow-lg transition-all duration-300 hover:scale-[1.02]">
 
             <p className="text-sm opacity-80">
               {mode === "cgpa" ? "Percentage" : "CGPA"}
@@ -171,63 +225,37 @@ export default function CGPA() {
                 ? cgpaResult.toFixed(2)
                 : "--"}
             </h2>
-
           </div>
 
-        </div>
-      </section>
+          {/* 🎯 FEEDBACK */}
+          {band && (
+            <div
+              className={`mt-6 p-5 rounded-xl text-white bg-gradient-to-r ${
+                bandData[band].color
+              } animate-fadeIn`}
+            >
+              <p className="text-sm opacity-80">
+                Performance: {bandData[band].label}
+              </p>
 
-      {/* QUICK TABLE */}
-      <section className="mt-12 max-w-4xl mx-auto bg-white p-6 rounded-xl shadow">
-        <h2 className="text-xl font-bold mb-4">Quick Reference</h2>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
-          {[
-            ["10", "95%"],
-            ["9", "85.5%"],
-            ["8", "76%"],
-            ["7", "66.5%"],
-            ["6", "57%"],
-            ["5", "47.5%"],
-          ].map(([c, p]) => (
-            <div key={c} className="bg-slate-100 p-3 rounded-lg text-center">
-              <p className="font-bold">{c}</p>
-              <p>{p}</p>
+              <h3 className="text-xl font-bold mt-1">
+                {bandData[band].msg}
+              </h3>
+
+              <div className="text-3xl mt-2">
+                {bandData[band].emoji}
+              </div>
             </div>
-          ))}
+          )}
         </div>
       </section>
 
-      {/* SEO CONTENT */}
-      <section className="mt-12 max-w-4xl mx-auto space-y-6 text-slate-700">
-
-        <div className="bg-white p-6 rounded-xl shadow">
-          <h2 className="text-2xl font-bold">
-            CGPA to Percentage Guide
-          </h2>
-          <p className="mt-3">
-            CGPA is widely used in Indian universities. The most common conversion formula is CGPA × 9.5.
-          </p>
-        </div>
-
-        <div className="bg-white p-6 rounded-xl shadow">
-          <h2 className="text-2xl font-bold">FAQ</h2>
-          <p className="mt-3">
-            Not all universities use the same formula. Always verify official conversion rules.
-          </p>
-        </div>
-
-      </section>
-
-      {/* NAVIGATION */}
+      {/* NAV */}
       <div className="mt-10 text-center">
-        <Link
-          href="/sgpa"
-          className="text-blue-600 font-bold underline"
-        >
-          Try SGPA Calculator →
+        <Link href="/sgpa" className="text-blue-600 font-bold underline">
+          Try SGPA →
         </Link>
       </div>
-
     </main>
   );
 }
