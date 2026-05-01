@@ -53,22 +53,22 @@ export default function SGPA() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-100 p-6">
-      <h1 className="text-3xl font-bold mb-6">SGPA Calculator</h1>
+    <div className="min-h-screen bg-white text-black p-6">
+      <h1 className="text-3xl font-bold mb-6 text-black">SGPA Calculator</h1>
 
       {subjects.map((s, i) => (
         <div key={i} className="flex gap-4 mb-3">
           <input
             type="number"
             placeholder="Credits"
-            className="p-2 border rounded w-24"
+            className="p-2 border border-gray-400 rounded w-24 text-black bg-white"
             onChange={(e) =>
               updateSubject(i, "credits", Number(e.target.value))
             }
           />
 
           <select
-            className="p-2 border rounded"
+           className="p-2 border border-gray-400 rounded text-black bg-white"
             onChange={(e) =>
   updateSubject(i, "grade", e.target.value)
 }
@@ -87,8 +87,7 @@ export default function SGPA() {
         Add Subject
       </button>
 
-      <div className="mt-6 text-lg">
-        SGPA: <strong>{calculateSGPA()}</strong>
+<div className="mt-6 text-lg text-black font-semibold">        SGPA: <strong>{calculateSGPA()}</strong>
       </div>
     </div>
   );
