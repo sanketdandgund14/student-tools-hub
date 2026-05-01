@@ -1,188 +1,233 @@
 "use client";
-import { useState } from "react";
+
 import Link from "next/link";
+import { useEffect, useState } from "react";
 
 export default function CGPA() {
+  const [mode, setMode] = useState<"cgpa" | "percentage">("cgpa");
+
   const [cgpa, setCgpa] = useState("");
-  const [result, setResult] = useState<number | null>(null);
+  const [percentage, setPercentage] = useState("");
+
+  const [cgpaResult, setCgpaResult] = useState<number | null>(null);
+  const [percentageResult, setPercentageResult] = useState<number | null>(null);
+
   const [error, setError] = useState("");
 
-  const calculate = () => {
+  // CGPA → Percentage (instant)
+  useEffect(() => {
+    if (mode !== "cgpa") return;
+
     const value = parseFloat(cgpa);
 
-    if (isNaN(value)) {
-      setError("Please enter a valid CGPA");
-      setResult(null);
+    if (cgpa === "") {
+      setPercentageResult(null);
+      setError("");
+      return;
+    }
+
+    if (Number.isNaN(value)) {
+      setError("Enter a valid CGPA");
+      setPercentageResult(null);
       return;
     }
 
     if (value < 0 || value > 10) {
       setError("CGPA must be between 0 and 10");
-      setResult(null);
+      setPercentageResult(null);
       return;
     }
 
     setError("");
-    setResult(value * 9.5);
-  };
+    setPercentageResult(value * 9.5);
+  }, [cgpa, mode]);
+
+  // Percentage → CGPA (instant)
+  useEffect(() => {
+    if (mode !== "percentage") return;
+
+    const value = parseFloat(percentage);
+
+    if (percentage === "") {
+      setCgpaResult(null);
+      setError("");
+      return;
+    }
+
+    if (Number.isNaN(value)) {
+      setError("Enter a valid percentage");
+      setCgpaResult(null);
+      return;
+    }
+
+    if (value < 0 || value > 100) {
+      setError("Percentage must be between 0 and 100");
+      setCgpaResult(null);
+      return;
+    }
+
+    setError("");
+    setCgpaResult(value / 9.5);
+  }, [percentage, mode]);
 
   return (
-    <div className="min-h-screen bg-slate-50 px-6 py-12">
+    <main className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-100 px-4 py-10 sm:px-6">
 
-      {/* HEADER */}
-      <div className="max-w-4xl mx-auto text-center mb-10">
-        <h1 className="text-4xl font-bold text-slate-900">
-          CGPA to Percentage Calculator
-        </h1>
-        <p className="text-slate-600 mt-3">
-          Instantly convert CGPA into percentage using standard formulas used in Indian universities.
-        </p>
-      </div>
+      <section className="mx-auto max-w-6xl grid gap-8 lg:grid-cols-[1fr_1.2fr]">
 
-      {/* CALCULATOR */}
-      <div className="max-w-md mx-auto bg-white p-6 rounded-2xl shadow-md border">
-        <label className="block text-sm font-medium mb-2">
-          Enter your CGPA
-        </label>
+        {/* LEFT SIDE (SEO + INFO) */}
+        <div>
+          <p className="mb-4 inline-flex rounded-full border border-blue-200 bg-white/80 px-4 py-2 text-sm font-semibold text-blue-800 shadow-sm">
+            CGPA Conversion Tool
+          </p>
 
-        <input
-          type="number"
-          step="0.01"
-          placeholder="e.g. 7.5"
-          value={cgpa}
-          onChange={(e) => setCgpa(e.target.value)}
-          className="w-full border border-slate-200 p-3 rounded-lg mb-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
+          <h1 className="text-4xl font-black text-slate-950 sm:text-5xl">
+            CGPA ↔ Percentage Calculator
+          </h1>
 
-        {error && (
-          <p className="text-red-500 text-sm mb-3">{error}</p>
-        )}
+          <p className="mt-4 text-lg text-slate-600 leading-8">
+            Convert CGPA to percentage or percentage to CGPA instantly using standard Indian formulas.
+          </p>
 
-        <button
-          onClick={calculate}
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-lg font-semibold transition"
-        >
-          Calculate Percentage
-        </button>
-
-        {result !== null && (
-          <div className="mt-5 text-center">
-            <p className="text-slate-600">Your Percentage</p>
-            <h2 className="text-3xl font-bold text-blue-600">
-              {result.toFixed(2)}%
-            </h2>
+          <div className="mt-6 grid grid-cols-2 gap-3">
+            <div className="bg-white p-4 rounded-xl shadow">
+              <p className="text-sm text-gray-500">Formula</p>
+              <p className="font-bold text-xl">CGPA × 9.5</p>
+            </div>
+            <div className="bg-white p-4 rounded-xl shadow">
+              <p className="text-sm text-gray-500">Reverse</p>
+              <p className="font-bold text-xl">÷ 9.5</p>
+            </div>
           </div>
-        )}
-      </div>
+        </div>
 
-      {/* AD SLOT 1 */}
-      <div className="max-w-3xl mx-auto mt-8 p-6 border rounded-xl text-center text-slate-400">
-        Advertisement
-      </div>
+        {/* RIGHT SIDE (TOOL) */}
+        <div className="bg-white/80 backdrop-blur-xl p-6 rounded-2xl shadow-xl">
+
+          {/* TOGGLE */}
+          <div className="flex gap-3 mb-6">
+            <button
+              onClick={() => setMode("cgpa")}
+              className={`flex-1 p-3 rounded-lg font-bold transition ${
+                mode === "cgpa"
+                  ? "bg-blue-600 text-white"
+                  : "bg-slate-100"
+              }`}
+            >
+              CGPA → %
+            </button>
+
+            <button
+              onClick={() => setMode("percentage")}
+              className={`flex-1 p-3 rounded-lg font-bold transition ${
+                mode === "percentage"
+                  ? "bg-purple-600 text-white"
+                  : "bg-slate-100"
+              }`}
+            >
+              % → CGPA
+            </button>
+          </div>
+
+          {/* INPUT */}
+          <div>
+            {mode === "cgpa" ? (
+              <input
+                type="number"
+                value={cgpa}
+                placeholder="Enter CGPA (0–10)"
+                onChange={(e) => setCgpa(e.target.value)}
+                className="w-full p-4 border rounded-xl text-lg focus:ring-4 focus:ring-blue-200"
+              />
+            ) : (
+              <input
+                type="number"
+                value={percentage}
+                placeholder="Enter Percentage (0–100)"
+                onChange={(e) => setPercentage(e.target.value)}
+                className="w-full p-4 border rounded-xl text-lg focus:ring-4 focus:ring-purple-200"
+              />
+            )}
+          </div>
+
+          {/* ERROR */}
+          {error && (
+            <p className="mt-3 text-red-600 font-semibold">{error}</p>
+          )}
+
+          {/* RESULT */}
+          <div className="mt-6 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 text-white p-6 text-center shadow-lg">
+
+            <p className="text-sm opacity-80">
+              {mode === "cgpa" ? "Percentage" : "CGPA"}
+            </p>
+
+            <h2 className="text-5xl font-black mt-2">
+              {mode === "cgpa"
+                ? percentageResult !== null
+                  ? `${percentageResult.toFixed(2)}%`
+                  : "--"
+                : cgpaResult !== null
+                ? cgpaResult.toFixed(2)
+                : "--"}
+            </h2>
+
+          </div>
+
+        </div>
+      </section>
+
+      {/* QUICK TABLE */}
+      <section className="mt-12 max-w-4xl mx-auto bg-white p-6 rounded-xl shadow">
+        <h2 className="text-xl font-bold mb-4">Quick Reference</h2>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
+          {[
+            ["10", "95%"],
+            ["9", "85.5%"],
+            ["8", "76%"],
+            ["7", "66.5%"],
+            ["6", "57%"],
+            ["5", "47.5%"],
+          ].map(([c, p]) => (
+            <div key={c} className="bg-slate-100 p-3 rounded-lg text-center">
+              <p className="font-bold">{c}</p>
+              <p>{p}</p>
+            </div>
+          ))}
+        </div>
+      </section>
 
       {/* SEO CONTENT */}
-      <div className="max-w-3xl mx-auto mt-12 text-slate-700 leading-relaxed">
+      <section className="mt-12 max-w-4xl mx-auto space-y-6 text-slate-700">
 
-        <h2 className="text-2xl font-bold mb-4">
-          CGPA to Percentage Calculator (India Guide)
-        </h2>
+        <div className="bg-white p-6 rounded-xl shadow">
+          <h2 className="text-2xl font-bold">
+            CGPA to Percentage Guide
+          </h2>
+          <p className="mt-3">
+            CGPA is widely used in Indian universities. The most common conversion formula is CGPA × 9.5.
+          </p>
+        </div>
 
-        <p className="mb-4">
-          CGPA (Cumulative Grade Point Average) is widely used in Indian universities to evaluate academic performance. 
-          Instead of raw marks, students are graded on a scale (usually 10).
-        </p>
+        <div className="bg-white p-6 rounded-xl shadow">
+          <h2 className="text-2xl font-bold">FAQ</h2>
+          <p className="mt-3">
+            Not all universities use the same formula. Always verify official conversion rules.
+          </p>
+        </div>
 
-        <p className="mb-4">
-          To convert CGPA into percentage, most institutions follow a standard formula:
-        </p>
+      </section>
 
-        <p className="font-semibold text-lg mb-4">
-          Percentage = CGPA × 9.5
-        </p>
-
-        <h3 className="text-xl font-semibold mt-6 mb-2">
-          Example Calculation
-        </h3>
-
-        <p className="mb-4">
-          If your CGPA is 7.2:
-          <br />
-          7.2 × 9.5 = 68.4%
-        </p>
-
-        <h3 className="text-xl font-semibold mt-6 mb-2">
-          Why CGPA Conversion Matters
-        </h3>
-
-        <ul className="list-disc pl-6 mb-4">
-          <li>Required for job placements</li>
-          <li>Used in higher education applications</li>
-          <li>Needed for scholarships and eligibility</li>
-        </ul>
-
-        <h3 className="text-xl font-semibold mt-6 mb-2">
-          University Differences
-        </h3>
-
-        <p className="mb-4">
-          Not all universities follow the same formula. Some use CGPA × 10 or custom calculations.
-          Always verify with your university guidelines.
-        </p>
-
+      {/* NAVIGATION */}
+      <div className="mt-10 text-center">
+        <Link
+          href="/sgpa"
+          className="text-blue-600 font-bold underline"
+        >
+          Try SGPA Calculator →
+        </Link>
       </div>
 
-      {/* AD SLOT 2 */}
-      <div className="max-w-3xl mx-auto mt-8 p-6 border rounded-xl text-center text-slate-400">
-        Advertisement
-      </div>
-
-      {/* FAQ */}
-      <div className="max-w-3xl mx-auto mt-12 text-slate-700">
-
-        <h2 className="text-2xl font-bold mb-4">
-          Frequently Asked Questions
-        </h2>
-
-        <h3 className="font-semibold mt-4">
-          Is CGPA × 9.5 always correct?
-        </h3>
-        <p className="mb-3">
-          No. While widely used, some universities use different formulas.
-        </p>
-
-        <h3 className="font-semibold mt-4">
-          What is a good CGPA?
-        </h3>
-        <p className="mb-3">
-          A CGPA above 8 is generally considered strong in most institutions.
-        </p>
-
-        <h3 className="font-semibold mt-4">
-          Can I use this for VTU / AKTU / Anna University?
-        </h3>
-        <p className="mb-3">
-          Yes, but always verify official formulas since they may differ.
-        </p>
-
-        <h3 className="font-semibold mt-4">
-          What is the maximum CGPA?
-        </h3>
-        <p className="mb-3">
-          Most universities use a 10-point scale.
-        </p>
-
-      </div>
-
-      {/* INTERNAL LINKING */}
-      <div className="max-w-3xl mx-auto mt-10 text-center">
-        <p className="text-slate-600">
-          Need semester-wise calculation? Try our{" "}
-          <Link href="/sgpa" className="text-blue-600 font-semibold underline">
-            SGPA Calculator
-          </Link>
-        </p>
-      </div>
-
-    </div>
+    </main>
   );
 }
