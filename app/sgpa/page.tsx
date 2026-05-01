@@ -25,15 +25,15 @@ export default function SGPA() {
     setSubjects([...subjects, { credits: 0, grade: "O" }]);
   };
 
-  const updateSubject = (
-    index: number,
-    field: keyof Subject,
-    value: any
-  ) => {
-    const updated = [...subjects];
-    updated[index][field] = value;
-    setSubjects(updated);
-  };
+  const updateSubject = <K extends keyof Subject>(
+  index: number,
+  field: K,
+  value: Subject[K]
+) => {
+  const updated = [...subjects];
+  updated[index][field] = value;
+  setSubjects(updated);
+};
 
   const calculateSGPA = () => {
     let totalCredits = 0;
@@ -70,8 +70,8 @@ export default function SGPA() {
           <select
             className="p-2 border rounded"
             onChange={(e) =>
-              updateSubject(i, "grade", e.target.value)
-            }
+  updateSubject(i, "grade", e.target.value)
+}
           >
             {Object.keys(gradeMap).map((g) => (
               <option key={g}>{g}</option>
